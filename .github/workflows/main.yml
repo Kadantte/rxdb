@@ -292,7 +292,7 @@ jobs:
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.12.0
         with:
-          mongodb-version: 7.0.1
+          mongodb-version: 8.0.4
 
       - name: install npm dependencies
         run: npm install
@@ -840,8 +840,8 @@ jobs:
       # bun
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.1.18'
-      - run: npm run test:bun:dexie
+          bun-version: '1.2.2'
+      - run: npm run test:bun:memory
       - run: npm run test:performance:memory:bun
 
       # deno (must be last because it messes up with file permissions)

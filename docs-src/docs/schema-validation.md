@@ -81,4 +81,57 @@ const db = await createRxDatabase({
 });
 ```
 
+## Custom Formats
 
+The schema validators provide methods to add custom formats like a `email` format.
+You have to add these formats **before** you create your database.
+
+### Ajv Custom Format
+
+```ts
+import { getAjv } from 'rxdb/plugins/validate-ajv';
+const ajv = getAjv();
+ajv.addFormat('email', {
+    type: 'string',
+    validate: v => v.includes('@') // ensure email fields contain the @ symbol
+});
+```
+
+### Z-Schema Custom Format
+
+```ts
+import { ZSchemaClass } from 'rxdb/plugins/validate-z-schema';
+ZSchemaClass.registerFormat('email', function (v: string) {
+    return v.includes('@'); // ensure email fields contain the @ symbol
+});
+```
+
+
+## Performance comparison of the validators
+
+The RxDB team ran performance benchmarks using two storage options on an Ubuntu 24.04 machine with Chrome version `131.0.6778.85`. The testing machine has 32 core `13th Gen Intel(R) Core(TM) i9-13900HX` CPU.
+
+Dexie Storage (based on IndexedDB in the browser):
+
+| **Dexie Storage** | Time to First insert | Insert 3000 documents |
+| ----------------- | :------------------: | --------------------: |
+| no validator      |        68 ms         |                213 ms |
+| ajv               |        67 ms         |                216 ms |
+| z-schema          |        71 ms         |                230 ms |
+
+Memory Storage: stores everything in memory for extremely fast reads and writes, with no persistence by default. Often used with the RxDB memory-mapped plugin that processes data in memory an later persists to disc in background:
+
+| **Memory Storage** | Time to First insert | Insert 3000 documents |
+| ------------------ | :------------------: | --------------------: |
+| no validator       |       1.15 ms        |                0.8 ms |
+| ajv                |       3.05 ms        |                2.7 ms |
+| z-schema           |        0.9 ms        |                 18 ms |
+
+
+Including a validator library also increases your JavaScript bundle size. Here's how it breaks down (minified + gzip):
+
+| **Build Size** (minified+gzip) | Build Size (dexie) | Build Size (memory) |
+| ------------------------------ | :----------------: | ------------------: |
+| no validator                   |      73103 B       |             39976 B |
+| ajv                            |      106135 B      |             72773 B |
+| z-schema                       |      125186 B      |             91882 B |
